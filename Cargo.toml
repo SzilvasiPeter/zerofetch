@@ -1,0 +1,32 @@
+[package]
+name = "zerofetch"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/SzilvasiPeter/zerofetch"
+description = "zerofetch"
+readme = "README.md"
+keywords = ["system", "status", "linux", "fetch"]
+categories = ["command-line-utilities"]
+
+[dependencies]
+edid-info = "0.2.3"
+pkgmgr-info = "1"
+shellver = "2"
+sysinfo = "0.39"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = "deny"
+pedantic = "deny"
+nursery = "deny"
+cargo = "deny"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
