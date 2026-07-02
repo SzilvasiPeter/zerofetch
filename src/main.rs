@@ -48,21 +48,17 @@ fn main() {
 }
 
 fn drm_entry_info(entry: &std::fs::DirEntry) -> Option<String> {
-    let Ok(n) = entry.file_name().into_string() else {
-        return None;
-    };
-    if !n.contains('-') {
+    let name = entry.file_name().into_string().ok()?;
+    if !name.contains('-') {
         return None;
     }
-    let Ok(bytes) = fs::read(entry.path().join("edid")) else {
-        return None;
-    };
+
+    let bytes = fs::read(entry.path().join("edid")).ok()?;
     if bytes.is_empty() {
         return None;
     }
-    let Ok(edid) = Edid::parse(&bytes) else {
-        return None;
-    };
+
+    let edid = Edid::parse(&bytes).ok()?;
     Some(edid_info(&edid))
 }
 
@@ -80,6 +76,7 @@ fn edid_info(edid: &Edid) -> String {
         .map(|n| n.text().to_string())
         .next()
         .unwrap_or_default();
+
     let (h_active, v_active, pixel, h_total, v_total) = base
         .descriptors()
         .iter()
