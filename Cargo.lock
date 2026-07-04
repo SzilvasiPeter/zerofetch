@@ -18,6 +18,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4388bee8683e3d04af747c73422af53102d2bd24d9eadb6cbc100baef4b43f8"
 
 [[package]]
+name = "detect-desktop-environment"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff7f16599c3ba6b4ab9a3195bcd9413a7ee8d51e7651f3e9efd6a5db5315008d"
+
+[[package]]
 name = "dispatch2"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -341,6 +347,7 @@ dependencies = [
 name = "zerofetch"
 version = "0.1.0"
 dependencies = [
+ "detect-desktop-environment",
  "edid-info",
  "pkgmgr-info",
  "shellver",
