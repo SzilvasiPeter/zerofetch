@@ -1,4 +1,6 @@
 #![forbid(unsafe_code)]
+mod theme;
+
 use detect_desktop_environment::DesktopEnvironment;
 use edid_info::base::basic::ScreenSize::Dimensions;
 use edid_info::base::descriptor::monitor::DisplayDescriptor::ProductName;
@@ -38,10 +40,10 @@ fn main() {
                 .join("\n")
         },
     );
-    let desktop_environment = DesktopEnvironment::detect()
-        .map(deskenv_to_str)
-        .unwrap_or_default();
+    let desktop_env = DesktopEnvironment::detect();
+    let desktop_environment = desktop_env.map(deskenv_to_str).unwrap_or_default();
     let window_manager = std::env::var("XDG_SESSION_TYPE").unwrap_or_default();
+    let theme_info = theme::detect(desktop_env);
 
     println!("OS: {os} {arch}");
     println!("Host: {host}");
@@ -52,6 +54,14 @@ fn main() {
     println!("Display: {display}");
     println!("DE: {desktop_environment}");
     println!("WM: {window_manager}");
+    println!("WM Theme: {}", theme_info.wm_theme);
+    println!("Theme: {}", theme_info.theme);
+    println!("Icon: {}", theme_info.icons);
+    println!("Font: {}", theme_info.font);
+    println!(
+        "Cursor: {} ({}px)",
+        theme_info.cursor, theme_info.cursor_size
+    );
 }
 
 fn drm_entry_info(entry: &std::fs::DirEntry) -> Option<String> {
@@ -122,7 +132,7 @@ fn edid_info(edid: &Edid) -> String {
     format!("{manufacturer} {product}, {h_active}x{v_active}{size}, {hz}")
 }
 
-// TODO: Remove this and call the `to_string()` method directly if the https://github.com/demurgos/detect-desktop-environment/pull/19 PR is merged
+// TODO: Remove this and call the `to_string()` method directly once the https://github.com/demurgos/detect-desktop-environment/pull/19 PR is merged
 const fn deskenv_to_str(de: DesktopEnvironment) -> &'static str {
     match de {
         DesktopEnvironment::Cinnamon => "Cinnamon",
