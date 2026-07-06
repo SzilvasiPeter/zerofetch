@@ -41,6 +41,13 @@ fn main() {
     let desktop_environment = desktop_env.map(deskenv_to_str).unwrap_or_default();
     let window_manager = std::env::var("XDG_SESSION_TYPE").unwrap_or_default();
     let theme = theme::detect(desktop_env);
+    let sys = System::new_all();
+    let terminal = sys
+        .process(sysinfo::Pid::from_u32(std::process::id()))
+        .and_then(|p| sys.process(p.parent()?))
+        .and_then(|p| sys.process(p.parent()?))
+        .map(|p| p.name().to_string_lossy().into_owned())
+        .unwrap_or_default();
 
     println!("OS: {os} {arch}");
     println!("Host: {host}");
@@ -56,6 +63,7 @@ fn main() {
     println!("Icon: {}", theme.icons);
     println!("Font: {}", theme.font);
     println!("Cursor: {} ({}px)", theme.cursor, theme.cursor_size);
+    println!("Terminal: {terminal}");
 }
 
 // TODO: Remove this and call the `to_string()` method directly once the https://github.com/demurgos/detect-desktop-environment/pull/19 PR is merged

@@ -87,6 +87,7 @@ fn xfce_query(channel: &str, property: &str) -> String {
 
 pub fn detect(de: Option<DesktopEnvironment>) -> Info {
     let Some(de) = de else { return Info::default() };
+    // TODO: Extend with other desktop environment
     match de {
         DesktopEnvironment::Xfce => {
             let provider = Xfce;
