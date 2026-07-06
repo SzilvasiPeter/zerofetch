@@ -48,6 +48,13 @@ fn main() {
         .and_then(|p| sys.process(p.parent()?))
         .map(|p| p.name().to_string_lossy().into_owned())
         .unwrap_or_default();
+    let cpu = fs::read_to_string("/proc/cpuinfo")
+        .unwrap_or_default()
+        .lines()
+        .find(|line| line.starts_with("model name"))
+        .and_then(|line| line.split_once(':'))
+        .map(|(_, model)| model.trim().to_string())
+        .unwrap_or_default();
 
     println!("OS: {os} {arch}");
     println!("Host: {host}");
@@ -64,6 +71,7 @@ fn main() {
     println!("Font: {}", theme.font);
     println!("Cursor: {} ({}px)", theme.cursor, theme.cursor_size);
     println!("Terminal: {terminal}");
+    println!("CPU: {cpu}");
 }
 
 // TODO: Remove this and call the `to_string()` method directly once the https://github.com/demurgos/detect-desktop-environment/pull/19 PR is merged
