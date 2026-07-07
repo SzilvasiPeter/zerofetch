@@ -50,9 +50,8 @@ fn main() {
         .unwrap_or_default();
     let gpu = gpu::fetch();
     sys.refresh_memory();
-    let (total_memory, used_memory, memory_percentage) =
-        bytes_to_gib(sys.total_memory(), sys.used_memory());
-    let (total_swap, used_swap, swap_percentage) = bytes_to_gib(sys.total_swap(), sys.used_swap());
+    let (total_mem, used_mem, percentage_mem) = bytes_to_gib(sys.total_memory(), sys.used_memory());
+    let (total_swap, used_swap, percentage_swap) = bytes_to_gib(sys.total_swap(), sys.used_swap());
     let disks_info: Vec<(String, f64, f64, u64, String)> =
         sysinfo::Disks::new_with_refreshed_list()
             .iter()
@@ -83,8 +82,8 @@ fn main() {
     println!("Terminal: {terminal}");
     println!("CPU: {cpu}");
     println!("GPU: {gpu}");
-    println!("Memory: {used_memory:.2} GiB / {total_memory:.2} GiB ({memory_percentage:.0}%)");
-    println!("Swap: {used_swap:.2} GiB / {total_swap:.2} GiB ({swap_percentage:.0}%)");
+    println!("Memory: {used_mem:.2} GiB / {total_mem:.2} GiB ({percentage_mem:.0}%)");
+    println!("Swap: {used_swap:.2} GiB / {total_swap:.2} GiB ({percentage_swap:.0}%)");
 
     for (mount, used, total, percentage, fs) in disks_info {
         println!("Disk ({mount}): {used:.2} GiB / {total:.2} GiB ({percentage:.0}%) - {fs}");
