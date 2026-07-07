@@ -85,7 +85,7 @@ fn xfce_query(channel: &str, property: &str) -> String {
         .unwrap_or_default()
 }
 
-pub fn detect(de: Option<DesktopEnvironment>) -> Info {
+pub fn fetch(de: Option<DesktopEnvironment>) -> Info {
     let Some(de) = de else { return Info::default() };
     // TODO: Extend with other desktop environment
     match de {

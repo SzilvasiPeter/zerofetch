@@ -4,6 +4,18 @@ use edid_info::base::descriptors::Descriptor::{Display, Timing};
 use edid_info::edid::Edid;
 use std::fs;
 
+pub fn fetch() -> String {
+    fs::read_dir("/sys/class/drm").map_or_else(
+        |_| String::new(),
+        |dir| {
+            dir.flatten()
+                .filter_map(|entry| drm_entry_info(&entry))
+                .collect::<Vec<_>>()
+                .join("\n")
+        },
+    )
+}
+
 pub fn drm_entry_info(entry: &std::fs::DirEntry) -> Option<String> {
     let name = entry.file_name().into_string().ok()?;
     if !name.contains('-') {
