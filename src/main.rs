@@ -50,13 +50,21 @@ fn main() {
         .unwrap_or_default();
     let gpu = gpu::fetch();
     sys.refresh_memory();
-    let total_bytes = sys.total_memory();
-    let used_bytes = sys.used_memory();
-    let total_gib = f64::from(u32::try_from(total_bytes / 1_048_576).unwrap_or(0)) / 1024.0;
-    let used_gib = f64::from(u32::try_from(used_bytes / 1_048_576).unwrap_or(0)) / 1024.0;
-    let percentage = used_bytes
+    let t_memory = sys.total_memory();
+    let u_memory = sys.used_memory();
+    let total_memory = f64::from(u32::try_from(t_memory / 1_048_576).unwrap_or(0)) / 1024.0;
+    let used_memory = f64::from(u32::try_from(u_memory / 1_048_576).unwrap_or(0)) / 1024.0;
+    let memory_percentage = u_memory
         .checked_mul(100)
-        .and_then(|val| val.checked_div(total_bytes))
+        .and_then(|val| val.checked_div(t_memory))
+        .unwrap_or(0);
+    let t_swap = sys.total_swap();
+    let u_swap = sys.used_swap();
+    let total_swap = f64::from(u32::try_from(t_swap / 1_048_576).unwrap_or(0)) / 1024.0;
+    let used_swap = f64::from(u32::try_from(u_swap / 1_048_576).unwrap_or(0)) / 1024.0;
+    let swap_percentage = u_swap
+        .checked_mul(100)
+        .and_then(|val| val.checked_div(t_swap))
         .unwrap_or(0);
 
     println!("OS: {os} {arch}");
@@ -76,7 +84,8 @@ fn main() {
     println!("Terminal: {terminal}");
     println!("CPU: {cpu}");
     println!("GPU: {gpu}");
-    println!("Memory: {used_gib:.2} GiB / {total_gib:.2} GiB ({percentage:.0}%)");
+    println!("Memory: {used_memory:.2} GiB / {total_memory:.2} GiB ({memory_percentage:.0}%)");
+    println!("Swap: {used_swap:.2} GiB / {total_swap:.2} GiB ({swap_percentage:.0}%)");
 }
 
 // TODO: Remove this and call the `to_string()` method directly once the https://github.com/demurgos/detect-desktop-environment/pull/19 PR is merged
