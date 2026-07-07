@@ -38,8 +38,8 @@ pub fn fetch() -> String {
     let Some(db_path) = db_paths.iter().find(|p| Path::new(p).exists()) else {
         return String::new();
     };
-    let file_content = fs::read_to_string(db_path).unwrap_or_default();
 
+    let file_content = fs::read_to_string(db_path).unwrap_or_default();
     let mut lines = file_content
         .lines()
         .skip_while(|l| !l.starts_with(&vendor_id));

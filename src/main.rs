@@ -34,7 +34,7 @@ fn main() {
     let desktop_environment = desktop_env.map(deskenv_to_str).unwrap_or_default();
     let window_manager = std::env::var("XDG_SESSION_TYPE").unwrap_or_default();
     let theme = theme::fetch(desktop_env);
-    let sys = System::new_all();
+    let mut sys = System::new_all();
     let terminal = sys
         .process(sysinfo::Pid::from_u32(std::process::id()))
         .and_then(|p| sys.process(p.parent()?))
@@ -49,6 +49,15 @@ fn main() {
         .map(|(_, model)| model.trim().to_string())
         .unwrap_or_default();
     let gpu = gpu::fetch();
+    sys.refresh_memory();
+    let total_bytes = sys.total_memory();
+    let used_bytes = sys.used_memory();
+    let total_gib = f64::from(u32::try_from(total_bytes / 1_048_576).unwrap_or(0)) / 1024.0;
+    let used_gib = f64::from(u32::try_from(used_bytes / 1_048_576).unwrap_or(0)) / 1024.0;
+    let percentage = used_bytes
+        .checked_mul(100)
+        .and_then(|val| val.checked_div(total_bytes))
+        .unwrap_or(0);
 
     println!("OS: {os} {arch}");
     println!("Host: {host}");
@@ -67,6 +76,7 @@ fn main() {
     println!("Terminal: {terminal}");
     println!("CPU: {cpu}");
     println!("GPU: {gpu}");
+    println!("Memory: {used_gib:.2} GiB / {total_gib:.2} GiB ({percentage:.0}%)");
 }
 
 // TODO: Remove this and call the `to_string()` method directly once the https://github.com/demurgos/detect-desktop-environment/pull/19 PR is merged
