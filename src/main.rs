@@ -50,22 +50,21 @@ fn main() {
         .unwrap_or_default();
     let gpu = gpu::fetch();
     sys.refresh_memory();
-    let t_memory = sys.total_memory();
-    let u_memory = sys.used_memory();
-    let total_memory = f64::from(u32::try_from(t_memory / 1_048_576).unwrap_or(0)) / 1024.0;
-    let used_memory = f64::from(u32::try_from(u_memory / 1_048_576).unwrap_or(0)) / 1024.0;
-    let memory_percentage = u_memory
-        .checked_mul(100)
-        .and_then(|val| val.checked_div(t_memory))
-        .unwrap_or(0);
-    let t_swap = sys.total_swap();
-    let u_swap = sys.used_swap();
-    let total_swap = f64::from(u32::try_from(t_swap / 1_048_576).unwrap_or(0)) / 1024.0;
-    let used_swap = f64::from(u32::try_from(u_swap / 1_048_576).unwrap_or(0)) / 1024.0;
-    let swap_percentage = u_swap
-        .checked_mul(100)
-        .and_then(|val| val.checked_div(t_swap))
-        .unwrap_or(0);
+    let (total_memory, used_memory, memory_percentage) =
+        bytes_to_gib(sys.total_memory(), sys.used_memory());
+    let (total_swap, used_swap, swap_percentage) = bytes_to_gib(sys.total_swap(), sys.used_swap());
+    let disks_info: Vec<(String, f64, f64, u64, String)> =
+        sysinfo::Disks::new_with_refreshed_list()
+            .iter()
+            .map(|disk| {
+                let mount = disk.mount_point().to_string_lossy().into_owned();
+                let total = disk.total_space();
+                let used = total - disk.available_space();
+                let (total, used, percentage) = bytes_to_gib(total, used);
+                let fs = disk.file_system().to_string_lossy().into_owned();
+                (mount, used, total, percentage, fs)
+            })
+            .collect();
 
     println!("OS: {os} {arch}");
     println!("Host: {host}");
@@ -86,6 +85,20 @@ fn main() {
     println!("GPU: {gpu}");
     println!("Memory: {used_memory:.2} GiB / {total_memory:.2} GiB ({memory_percentage:.0}%)");
     println!("Swap: {used_swap:.2} GiB / {total_swap:.2} GiB ({swap_percentage:.0}%)");
+
+    for (mount, used, total, percentage, fs) in disks_info {
+        println!("Disk ({mount}): {used:.2} GiB / {total:.2} GiB ({percentage:.0}%) - {fs}");
+    }
+}
+
+fn bytes_to_gib(total: u64, used: u64) -> (f64, f64, u64) {
+    let total_gib = f64::from(u32::try_from(total / 1_048_576).unwrap_or(0)) / 1024.0;
+    let used_gib = f64::from(u32::try_from(used / 1_048_576).unwrap_or(0)) / 1024.0;
+    let percentage = used
+        .checked_mul(100)
+        .and_then(|val| val.checked_div(total))
+        .unwrap_or(0);
+    (total_gib, used_gib, percentage)
 }
 
 // TODO: Remove this and call the `to_string()` method directly once the https://github.com/demurgos/detect-desktop-environment/pull/19 PR is merged
