@@ -14,17 +14,17 @@ pub fn fetch() -> String {
             fs::read_to_string(entry.path().join("class")).is_ok_and(|c| c.contains("0x0300"))
         })
         .and_then(|entry| {
-            let v = fs::read_to_string(entry.path().join("vendor"))
+            let vendor = fs::read_to_string(entry.path().join("vendor"))
                 .ok()?
                 .trim()
                 .strip_prefix("0x")?
                 .to_string();
-            let d = fs::read_to_string(entry.path().join("device"))
+            let device = fs::read_to_string(entry.path().join("device"))
                 .ok()?
                 .trim()
                 .strip_prefix("0x")?
                 .to_string();
-            Some((v, d))
+            Some((vendor, device))
         })
     else {
         return String::new();

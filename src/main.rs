@@ -6,8 +6,7 @@ mod theme;
 use detect_desktop_environment::DesktopEnvironment;
 use pkgmgr_info::PackageManager;
 use shellver::Shell;
-use std::fs;
-use sysinfo::{Motherboard, System};
+use sysinfo::{Motherboard, Networks, System};
 
 fn main() {
     let os = System::name().unwrap_or_else(|| "unknown".to_string());
@@ -35,21 +34,16 @@ fn main() {
     let window_manager = std::env::var("XDG_SESSION_TYPE").unwrap_or_default();
     let theme = theme::fetch(desktop_env);
     let mut sys = System::new_all();
+    sys.refresh_memory();
     let terminal = sys
         .process(sysinfo::Pid::from_u32(std::process::id()))
         .and_then(|p| sys.process(p.parent()?))
         .and_then(|p| sys.process(p.parent()?))
         .map(|p| p.name().to_string_lossy().into_owned())
         .unwrap_or_default();
-    let cpu = fs::read_to_string("/proc/cpuinfo")
-        .unwrap_or_default()
-        .lines()
-        .find(|line| line.starts_with("model name"))
-        .and_then(|line| line.split_once(':'))
-        .map(|(_, model)| model.trim().to_string())
-        .unwrap_or_default();
+    let cpu = sys.cpus().iter().next().map(sysinfo::Cpu::brand);
+    let cpu = cpu.unwrap_or_default();
     let gpu = gpu::fetch();
-    sys.refresh_memory();
     let (total_mem, used_mem, percentage_mem) = bytes_to_gib(sys.total_memory(), sys.used_memory());
     let (total_swap, used_swap, percentage_swap) = bytes_to_gib(sys.total_swap(), sys.used_swap());
     let disks_info: Vec<(String, f64, f64, u64, String)> =
@@ -64,6 +58,12 @@ fn main() {
                 (mount, used, total, percentage, fs)
             })
             .collect();
+    let (name, addr, prefix) = Networks::new_with_refreshed_list()
+        .iter()
+        .flat_map(|(name, net)| net.ip_networks().iter().map(move |ip| (name, ip)))
+        .find(|(_, ip)| ip.addr.is_ipv4() && !ip.addr.is_loopback())
+        .map(|(name, ip)| (name.clone(), ip.addr.to_string(), ip.prefix.to_string()))
+        .unwrap_or_default();
 
     println!("OS: {os} {arch}");
     println!("Host: {host}");
@@ -88,6 +88,7 @@ fn main() {
     for (mount, used, total, percentage, fs) in disks_info {
         println!("Disk ({mount}): {used:.2} GiB / {total:.2} GiB ({percentage:.0}%) - {fs}");
     }
+    println!("Local IP ({name}): {addr}/{prefix}");
 }
 
 fn bytes_to_gib(total: u64, used: u64) -> (f64, f64, u64) {
