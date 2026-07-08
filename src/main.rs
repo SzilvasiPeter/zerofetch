@@ -64,6 +64,7 @@ fn main() {
         .find(|(_, ip)| ip.addr.is_ipv4() && !ip.addr.is_loopback())
         .map(|(name, ip)| (name.clone(), ip.addr.to_string(), ip.prefix.to_string()))
         .unwrap_or_default();
+    let locale = std::env::var("LANG").unwrap_or_default();
 
     println!("OS: {os} {arch}");
     println!("Host: {host}");
@@ -89,6 +90,7 @@ fn main() {
         println!("Disk ({mount}): {used:.2} GiB / {total:.2} GiB ({percentage:.0}%) - {fs}");
     }
     println!("Local IP ({name}): {addr}/{prefix}");
+    println!("Locale: {locale}");
 }
 
 fn bytes_to_gib(total: u64, used: u64) -> (f64, f64, u64) {
