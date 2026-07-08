@@ -1,4 +1,4 @@
-use edid_info::base::basic::ScreenSize::Dimensions;
+use edid_info::base::basic::ScreenSize;
 use edid_info::base::descriptor::monitor::DisplayDescriptor::ProductName;
 use edid_info::base::descriptors::Descriptor::{Display, Timing};
 use edid_info::edid::Edid;
@@ -38,12 +38,11 @@ pub fn edid_info(edid: &Edid) -> String {
         .descriptors()
         .iter()
         .filter_map(|d| if let Display(m) = d { Some(m) } else { None })
-        .filter_map(|m| match m.descriptor() {
+        .find_map(|m| match m.descriptor() {
             ProductName(n) => Some(n),
             _ => None,
         })
-        .map(|n| n.text().to_string())
-        .next()
+        .map(|n| format!(" {}", n.text()))
         .unwrap_or_default();
 
     let (h_active, v_active, pixel, h_total, v_total) = base
@@ -61,16 +60,20 @@ pub fn edid_info(edid: &Edid) -> String {
         })
         .next()
         .unwrap_or_default();
-    let size = if let Dimensions(s) = base.basic().screen_size()
-        && s.width != 0
-        && s.height != 0
-    {
-        let height = f64::from(s.height);
-        let width = f64::from(s.width);
-        let diagonal = height.mul_add(height, width * width);
-        format!(" in {:.0}\"", diagonal.sqrt() / 25.4)
-    } else {
-        String::new()
+    let size = match base.basic().screen_size() {
+        ScreenSize::Dimensions(s) => {
+            let height = f64::from(s.height);
+            let width = f64::from(s.width);
+            let diagonal = height.mul_add(height, width * width);
+            format!(" in {:.0}\"", diagonal.sqrt() / 25.4)
+        }
+        ScreenSize::Aspect(ar) => {
+            let height = f64::from(ar.height());
+            let width = f64::from(ar.width());
+            let diagonal = height.mul_add(height, width * width);
+            format!(" in {:.0}\"", diagonal.sqrt() / 25.4)
+        }
+        ScreenSize::Undefined => String::new(),
     };
 
     let h_total = u64::from(h_total);
@@ -81,5 +84,5 @@ pub fn edid_info(edid: &Edid) -> String {
         String::new()
     };
 
-    format!("{manufacturer} {product}, {h_active}x{v_active}{size}, {hz}")
+    format!("{manufacturer}{product}, {h_active}x{v_active}{size}, {hz}")
 }
