@@ -1,6 +1,5 @@
+use crate::deskenv::DesktopEnv;
 use std::process::Command;
-
-use detect_desktop_environment::DesktopEnvironment;
 
 #[derive(Default)]
 pub struct Info {
@@ -132,14 +131,16 @@ fn gsettings_get(schema: &str, key: &str) -> String {
         .unwrap_or_default()
 }
 
-pub fn fetch(de: Option<DesktopEnvironment>) -> Info {
-    let Some(de) = de else { return Info::default() };
+pub fn fetch(de: &DesktopEnv) -> Info {
+    if matches!(de, DesktopEnv::Other(_)) {
+        return Info::default();
+    }
     match de {
-        DesktopEnvironment::Xfce => {
+        DesktopEnv::Xfce => {
             let provider = Xfce;
             provider.collect()
         }
-        DesktopEnvironment::Sway => {
+        DesktopEnv::Sway => {
             let provider = Sway;
             provider.collect()
         }

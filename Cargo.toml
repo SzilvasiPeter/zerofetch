@@ -10,7 +10,6 @@ keywords = ["system", "status", "linux", "fetch"]
 categories = ["command-line-utilities"]
 
 [dependencies]
-detect-desktop-environment = "1.2.0"
 edid-info = "0.2.3"
 pkgmgr-info = "1"
 shellver = "2"

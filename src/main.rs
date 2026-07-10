@@ -1,9 +1,9 @@
 #![forbid(unsafe_code)]
+mod deskenv;
 mod display;
 mod gpu;
 mod theme;
 
-use detect_desktop_environment::DesktopEnvironment;
 use pkgmgr_info::PackageManager;
 use shellver::Shell;
 use sysinfo::{Motherboard, Networks, System};
@@ -29,10 +29,10 @@ fn main() {
         .map(|s| format!("{} {}", s.name(), s.version().unwrap_or_default()))
         .unwrap_or_default();
     let display = display::fetch();
-    let desktop_env = DesktopEnvironment::detect();
-    let desktop_environment = desktop_env.map(deskenv_to_str).unwrap_or_default();
+    let desktop_env = deskenv::detect();
+    let desktop_environment = desktop_env.to_string();
     let window_manager = std::env::var("XDG_SESSION_TYPE").unwrap_or_default();
-    let theme = theme::fetch(desktop_env);
+    let theme = theme::fetch(&desktop_env);
     let mut sys = System::new_all();
     sys.refresh_memory();
     let terminal = sys
@@ -101,34 +101,4 @@ fn bytes_to_gib(total: u64, used: u64) -> (f64, f64, u64) {
         .and_then(|val| val.checked_div(total))
         .unwrap_or(0);
     (total_gib, used_gib, percentage)
-}
-
-// TODO: Remove this and call the `to_string()` method directly once the https://github.com/demurgos/detect-desktop-environment/pull/19 PR is merged
-const fn deskenv_to_str(de: DesktopEnvironment) -> &'static str {
-    match de {
-        DesktopEnvironment::Cinnamon => "Cinnamon",
-        DesktopEnvironment::Cosmic => "COSMIC",
-        DesktopEnvironment::CosmicEpoch => "COSMIC Epoch",
-        DesktopEnvironment::Dde => "DDE",
-        DesktopEnvironment::Ede => "EDE",
-        DesktopEnvironment::Endless => "Endless",
-        DesktopEnvironment::Enlightenment => "Enlightenment",
-        DesktopEnvironment::Gnome => "GNOME",
-        DesktopEnvironment::Hyprland => "Hyprland",
-        DesktopEnvironment::Kde => "KDE Plasma",
-        DesktopEnvironment::Lxde => "LXDE",
-        DesktopEnvironment::Lxqt => "LXQt",
-        DesktopEnvironment::MacOs => "macOS",
-        DesktopEnvironment::Mate => "MATE",
-        DesktopEnvironment::Old => "Old",
-        DesktopEnvironment::Pantheon => "Pantheon",
-        DesktopEnvironment::Razor => "Razor",
-        DesktopEnvironment::Rox => "ROX",
-        DesktopEnvironment::Sway => "Sway",
-        DesktopEnvironment::Tde => "TDE",
-        DesktopEnvironment::Unity => "Unity",
-        DesktopEnvironment::Windows => "Windows",
-        DesktopEnvironment::Xfce => "Xfce",
-        _ => "",
-    }
 }
