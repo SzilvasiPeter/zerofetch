@@ -85,12 +85,62 @@ fn xfce_query(channel: &str, property: &str) -> String {
         .unwrap_or_default()
 }
 
+struct Sway;
+
+impl ThemeQuerier for Sway {
+    fn theme(&self) -> String {
+        gsettings_get("org.gnome.desktop.interface", "gtk-theme")
+    }
+
+    fn icons(&self) -> String {
+        gsettings_get("org.gnome.desktop.interface", "icon-theme")
+    }
+
+    fn font(&self) -> String {
+        gsettings_get("org.gnome.desktop.interface", "font-name")
+    }
+
+    fn cursor(&self) -> String {
+        let val = gsettings_get("org.gnome.desktop.interface", "cursor-theme");
+        if val.is_empty() {
+            std::env::var("XCURSOR_THEME").unwrap_or_default()
+        } else {
+            val
+        }
+    }
+
+    fn cursor_size(&self) -> String {
+        let val = gsettings_get("org.gnome.desktop.interface", "cursor-size");
+        if val.is_empty() {
+            std::env::var("XCURSOR_SIZE").unwrap_or_default()
+        } else {
+            val
+        }
+    }
+}
+
+fn gsettings_get(schema: &str, key: &str) -> String {
+    Command::new("gsettings")
+        .args(["get", schema, key])
+        .output()
+        .map(|out| {
+            String::from_utf8_lossy(&out.stdout)
+                .trim()
+                .trim_matches('\'')
+                .to_string()
+        })
+        .unwrap_or_default()
+}
+
 pub fn fetch(de: Option<DesktopEnvironment>) -> Info {
     let Some(de) = de else { return Info::default() };
-    // TODO: Extend with other desktop environment
     match de {
         DesktopEnvironment::Xfce => {
             let provider = Xfce;
+            provider.collect()
+        }
+        DesktopEnvironment::Sway => {
+            let provider = Sway;
             provider.collect()
         }
         _ => Info::default(),
