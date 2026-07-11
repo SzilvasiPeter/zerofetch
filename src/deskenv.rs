@@ -53,42 +53,42 @@ impl fmt::Display for DesktopEnv {
     }
 }
 
+impl DesktopEnv {
+    pub fn from_raw(raw: &str) -> Self {
+        raw.split(':')
+            .map(str::trim)
+            .filter(|p| !p.is_empty())
+            .find_map(|p| {
+                let variant = match p.to_lowercase().as_str() {
+                    "budgie" => Self::Budgie,
+                    "cinnamon" | "x-cinnamon" => Self::Cinnamon,
+                    "cosmic" => Self::Cosmic,
+                    "dde" | "deepin" => Self::Dde,
+                    "ede" => Self::Ede,
+                    "endless" => Self::Endless,
+                    "enlightenment" | "e" => Self::Enlightenment,
+                    "gnome" => Self::Gnome,
+                    "hyprland" => Self::Hyprland,
+                    "kde" | "plasmax11" => Self::Kde,
+                    "lxde" => Self::Lxde,
+                    "lxqt" => Self::Lxqt,
+                    "mate" => Self::Mate,
+                    "pantheon" => Self::Pantheon,
+                    "razor" | "razor-qt" => Self::Razor,
+                    "rox" => Self::Rox,
+                    "sway" => Self::Sway,
+                    "tde" | "trinity" => Self::Tde,
+                    "unity" => Self::Unity,
+                    "xfce" | "xubuntu" => Self::Xfce,
+                    _ => return None,
+                };
+                Some(variant)
+            })
+            .unwrap_or_else(|| Self::Other(raw.to_string()))
+    }
+}
+
 pub fn detect() -> DesktopEnv {
     let raw = std::env::var("XDG_CURRENT_DESKTOP").unwrap_or_default();
     DesktopEnv::from_raw(&raw)
-}
-
-impl DesktopEnv {
-    pub fn from_raw(raw: &str) -> Self {
-        for part in raw.split(':') {
-            let part = part.trim();
-            if part.is_empty() {
-                continue;
-            }
-            match part.to_lowercase().as_str() {
-                "budgie" => return Self::Budgie,
-                "cinnamon" | "x-cinnamon" => return Self::Cinnamon,
-                "cosmic" => return Self::Cosmic,
-                "dde" | "deepin" => return Self::Dde,
-                "ede" => return Self::Ede,
-                "endless" => return Self::Endless,
-                "enlightenment" | "e" => return Self::Enlightenment,
-                "gnome" => return Self::Gnome,
-                "hyprland" => return Self::Hyprland,
-                "kde" | "plasmax11" => return Self::Kde,
-                "lxde" => return Self::Lxde,
-                "lxqt" => return Self::Lxqt,
-                "mate" => return Self::Mate,
-                "pantheon" => return Self::Pantheon,
-                "razor" | "razor-qt" => return Self::Razor,
-                "rox" => return Self::Rox,
-                "sway" => return Self::Sway,
-                "tde" | "trinity" => return Self::Tde,
-                "unity" => return Self::Unity,
-                "xfce" | "xubuntu" => return Self::Xfce,
-                _ => {}
-            }
-        }
-        Self::Other(raw.to_string())
-    }
 }
