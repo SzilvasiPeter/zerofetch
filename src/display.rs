@@ -3,26 +3,27 @@ use edid_info::base::descriptor::monitor::DisplayDescriptor::ProductName;
 use edid_info::base::descriptors::Descriptor::{Display, Timing};
 use edid_info::edid::Edid;
 use std::fs;
+use std::path::Path;
 
 pub fn fetch() -> String {
     fs::read_dir("/sys/class/drm").map_or_else(
         |_| String::new(),
         |dir| {
             dir.flatten()
-                .filter_map(|entry| drm_entry_info(&entry))
+                .filter_map(|entry| drm_entry_info(&entry.path()))
                 .collect::<Vec<_>>()
                 .join("\n")
         },
     )
 }
 
-pub fn drm_entry_info(entry: &std::fs::DirEntry) -> Option<String> {
-    let name = entry.file_name().into_string().ok()?;
+pub fn drm_entry_info(path: &Path) -> Option<String> {
+    let name = path.file_name()?.to_str()?;
     if !name.contains('-') {
         return None;
     }
 
-    let bytes = fs::read(entry.path().join("edid")).ok()?;
+    let bytes = fs::read(path.join("edid")).ok()?;
     if bytes.is_empty() {
         return None;
     }
