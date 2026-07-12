@@ -8,6 +8,9 @@ use pkgmgr_info::PackageManager;
 use shellver::Shell;
 use sysinfo::{Motherboard, Networks, System};
 
+const G: &str = "\x1b[32m";
+const R: &str = "\x1b[0m";
+
 fn main() {
     let os = System::name().unwrap_or_else(|| "unknown".to_string());
     let arch = System::cpu_arch();
@@ -28,7 +31,7 @@ fn main() {
     let shell = Shell::detect()
         .map(|s| format!("{} {}", s.name(), s.version().unwrap_or_default()))
         .unwrap_or_default();
-    let display = display::fetch();
+    let display = display::fetch().unwrap_or_default();
     let desktop_env = deskenv::detect();
     let desktop_environment = desktop_env.to_string();
     let window_manager = std::env::var("XDG_SESSION_TYPE").unwrap_or_default();
@@ -66,31 +69,30 @@ fn main() {
         .unwrap_or_default();
     let locale = std::env::var("LANG").unwrap_or_default();
 
-    println!("OS: {os} {arch}");
-    println!("Host: {host}");
-    println!("Kernel: {kernel}");
-    println!("Uptime: {hours} hours, {minutes} minutes");
-    println!("Packages: {packages}");
-    println!("Shell: {shell}");
-    println!("Display: {display}");
-    println!("DE: {desktop_environment}");
-    println!("WM: {window_manager}");
-    println!("WM Theme: {}", theme.wm_theme);
-    println!("Theme: {}", theme.theme);
-    println!("Icon: {}", theme.icons);
-    println!("Font: {}", theme.font);
-    println!("Cursor: {} ({}px)", theme.cursor, theme.cursor_size);
-    println!("Terminal: {terminal}");
-    println!("CPU: {cpu}");
-    println!("GPU: {gpu}");
-    println!("Memory: {used_mem:.2} GiB / {total_mem:.2} GiB ({percentage_mem:.0}%)");
-    println!("Swap: {used_swap:.2} GiB / {total_swap:.2} GiB ({percentage_swap:.0}%)");
-
+    println!("{G}OS:{R} {os} {arch}");
+    println!("{G}Host:{R} {host}");
+    println!("{G}Kernel:{R} {kernel}");
+    println!("{G}Uptime:{R} {hours} hours, {minutes} minutes");
+    println!("{G}Packages:{R} {packages}");
+    println!("{G}Shell:{R} {shell}");
+    println!("{G}Display:{R} {display}");
+    println!("{G}DE:{R} {desktop_environment}");
+    println!("{G}WM:{R} {window_manager}");
+    println!("{G}WM Theme:{R} {}", theme.wm_theme);
+    println!("{G}Theme:{R} {}", theme.theme);
+    println!("{G}Icon:{R} {}", theme.icons);
+    println!("{G}Font:{R} {}", theme.font);
+    println!("{G}Cursor:{R} {} ({}px)", theme.cursor, theme.cursor_size);
+    println!("{G}Terminal:{R} {terminal}");
+    println!("{G}CPU:{R} {cpu}");
+    println!("{G}GPU:{R} {gpu}");
+    println!("{G}Memory:{R} {used_mem:.2} GiB / {total_mem:.2} GiB ({percentage_mem:.0}%)");
+    println!("{G}Swap:{R} {used_swap:.2} GiB / {total_swap:.2} GiB ({percentage_swap:.0}%)");
     for (mount, used, total, percentage, fs) in disks_info {
-        println!("Disk ({mount}): {used:.2} GiB / {total:.2} GiB ({percentage:.0}%) - {fs}");
+        println!("{G}Disk ({mount}):{R} {used:.2} GiB / {total:.2} GiB ({percentage:.0}%) - {fs}");
     }
-    println!("Local IP ({name}): {addr}/{prefix}");
-    println!("Locale: {locale}");
+    println!("{G}Local IP ({name}):{R} {addr}/{prefix}");
+    println!("{G}Locale:{R} {locale}");
 }
 
 fn bytes_to_gib(total: u64, used: u64) -> (f64, f64, u64) {
