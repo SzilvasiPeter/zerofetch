@@ -3,36 +3,37 @@ use edid_info::base::descriptor::monitor::DisplayDescriptor::ProductName;
 use edid_info::base::descriptors::Descriptor::{Display, Timing};
 use edid_info::edid::Edid;
 use std::fs;
-use std::path::Path;
 
-pub fn fetch() -> String {
-    fs::read_dir("/sys/class/drm").map_or_else(
-        |_| String::new(),
-        |dir| {
-            dir.flatten()
-                .filter_map(|entry| drm_entry_info(&entry.path()))
-                .collect::<Vec<_>>()
-                .join("\n")
-        },
-    )
-}
+pub fn fetch() -> Option<String> {
+    let dir = fs::read_dir("/sys/class/drm").ok()?;
+    for entry in dir.flatten() {
+        let path = entry.path();
+        let name = path.file_name()?.to_str()?;
+        if !name.contains('-') {
+            continue;
+        }
 
-pub fn drm_entry_info(path: &Path) -> Option<String> {
-    let name = path.file_name()?.to_str()?;
-    if !name.contains('-') {
-        return None;
+        if let Ok(enabled_state) = fs::read_to_string(path.join("enabled"))
+            && enabled_state.trim() == "enabled"
+            && let Ok(bytes) = fs::read(path.join("edid"))
+        {
+            return process_drm(&bytes);
+        }
     }
 
-    let bytes = fs::read(path.join("edid")).ok()?;
+    None
+}
+
+fn process_drm(bytes: &[u8]) -> Option<String> {
     if bytes.is_empty() {
         return None;
     }
 
-    let edid = Edid::parse(&bytes).ok()?;
+    let edid = Edid::parse(bytes).ok()?;
     Some(edid_info(&edid))
 }
 
-pub fn edid_info(edid: &Edid) -> String {
+fn edid_info(edid: &Edid) -> String {
     let base = edid.base();
     let manufacturer: String = base.header().manufacturer().iter().collect();
     let product = base
