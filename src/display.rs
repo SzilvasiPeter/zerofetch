@@ -91,7 +91,7 @@ fn edid_info(edid: &Edid) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::edid_info;
+    use super::{edid_info, process_drm};
     use edid_info::common::BLOCK_LEN;
     use edid_info::edid::Edid;
 
@@ -186,7 +186,7 @@ mod tests {
     #[test]
     fn no_timing_descriptor() {
         let mut raw = base_block();
-        for offset in [54usize, 72, 90, 108] {
+        for offset in [54, 72, 90, 108] {
             set_display_monitor(&mut raw, offset, 0x10);
         }
         assert_eq!(edid_output(&raw), "DEL, 0x0 in 24\", ");
@@ -196,7 +196,7 @@ mod tests {
     fn timing_zero_h_total_v_total() {
         let mut raw = base_block();
         set_timing_zero(&mut raw, 54);
-        for offset in [72usize, 90, 108] {
+        for offset in [72, 90, 108] {
             set_display_monitor(&mut raw, offset, 0x10);
         }
         assert_eq!(edid_output(&raw), "DEL, 0x0 in 24\", ");
@@ -206,7 +206,7 @@ mod tests {
     fn timing_nonzero_h_total_v_total() {
         let mut raw = base_block();
         set_timing(&mut raw, 54);
-        for offset in [72usize, 90, 108] {
+        for offset in [72, 90, 108] {
             set_display_monitor(&mut raw, offset, 0x10);
         }
         assert_eq!(edid_output(&raw), "DEL, 640x480 in 24\", 59 Hz");
@@ -218,7 +218,7 @@ mod tests {
         raw[21] = 0;
         raw[22] = 0;
         set_timing(&mut raw, 54);
-        for offset in [72usize, 90, 108] {
+        for offset in [72, 90, 108] {
             set_display_monitor(&mut raw, offset, 0x10);
         }
         assert_eq!(edid_output(&raw), "DEL, 640x480, 59 Hz");
@@ -230,7 +230,7 @@ mod tests {
         raw[21] = 16;
         raw[22] = 0;
         set_timing(&mut raw, 54);
-        for offset in [72usize, 90, 108] {
+        for offset in [72, 90, 108] {
             set_display_monitor(&mut raw, offset, 0x10);
         }
         assert_eq!(edid_output(&raw), "DEL, 640x480 in 6\", 59 Hz");
@@ -240,9 +240,32 @@ mod tests {
     fn screen_size_dimensions() {
         let mut raw = base_block();
         set_timing(&mut raw, 54);
-        for offset in [72usize, 90, 108] {
+        for offset in [72, 90, 108] {
             set_display_monitor(&mut raw, offset, 0x10);
         }
         assert_eq!(edid_output(&raw), "DEL, 640x480 in 24\", 59 Hz");
+    }
+
+    #[test]
+    fn process_drm_empty_bytes() {
+        assert_eq!(process_drm(&[]), None);
+    }
+
+    #[test]
+    fn process_drm_invalid_bytes() {
+        assert_eq!(process_drm(&[0xDE, 0xAD, 0xBE, 0xEF]), None);
+    }
+
+    #[test]
+    fn process_drm_valid_bytes() {
+        let mut raw = base_block();
+        set_timing(&mut raw, 54);
+        for offset in [72, 90, 108] {
+            set_display_monitor(&mut raw, offset, 0x10);
+        }
+        assert_eq!(
+            process_drm(&raw),
+            Some("DEL, 640x480 in 24\", 59 Hz".into())
+        );
     }
 }
