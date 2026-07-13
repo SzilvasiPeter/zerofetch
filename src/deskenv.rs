@@ -92,3 +92,133 @@ pub fn detect() -> DesktopEnv {
     let raw = std::env::var("XDG_CURRENT_DESKTOP").unwrap_or_default();
     DesktopEnv::from_raw(&raw)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn display() {
+        let cases = [
+            (DesktopEnv::Budgie, "Budgie"),
+            (DesktopEnv::Cinnamon, "Cinnamon"),
+            (DesktopEnv::Cosmic, "COSMIC"),
+            (DesktopEnv::Dde, "DDE"),
+            (DesktopEnv::Ede, "EDE"),
+            (DesktopEnv::Endless, "Endless"),
+            (DesktopEnv::Enlightenment, "Enlightenment"),
+            (DesktopEnv::Gnome, "GNOME"),
+            (DesktopEnv::Hyprland, "Hyprland"),
+            (DesktopEnv::Kde, "KDE Plasma"),
+            (DesktopEnv::Lxde, "LXDE"),
+            (DesktopEnv::Lxqt, "LXQt"),
+            (DesktopEnv::Mate, "MATE"),
+            (DesktopEnv::Pantheon, "Pantheon"),
+            (DesktopEnv::Razor, "Razor"),
+            (DesktopEnv::Rox, "ROX"),
+            (DesktopEnv::Sway, "Sway"),
+            (DesktopEnv::Tde, "TDE"),
+            (DesktopEnv::Unity, "Unity"),
+            (DesktopEnv::Xfce, "Xfce"),
+            (DesktopEnv::Other("CustomDE".into()), "CustomDE"),
+            (DesktopEnv::Other(String::new()), ""),
+        ];
+        for (env, expected) in cases {
+            assert_eq!(env.to_string(), expected);
+        }
+    }
+
+    #[test]
+    fn from_raw_primary_names() {
+        let cases = [
+            ("budgie", DesktopEnv::Budgie),
+            ("cinnamon", DesktopEnv::Cinnamon),
+            ("cosmic", DesktopEnv::Cosmic),
+            ("dde", DesktopEnv::Dde),
+            ("ede", DesktopEnv::Ede),
+            ("endless", DesktopEnv::Endless),
+            ("enlightenment", DesktopEnv::Enlightenment),
+            ("gnome", DesktopEnv::Gnome),
+            ("hyprland", DesktopEnv::Hyprland),
+            ("kde", DesktopEnv::Kde),
+            ("lxde", DesktopEnv::Lxde),
+            ("lxqt", DesktopEnv::Lxqt),
+            ("mate", DesktopEnv::Mate),
+            ("pantheon", DesktopEnv::Pantheon),
+            ("razor", DesktopEnv::Razor),
+            ("rox", DesktopEnv::Rox),
+            ("sway", DesktopEnv::Sway),
+            ("tde", DesktopEnv::Tde),
+            ("unity", DesktopEnv::Unity),
+            ("xfce", DesktopEnv::Xfce),
+        ];
+        for (raw, expected) in cases {
+            assert_eq!(DesktopEnv::from_raw(raw), expected, "raw: {raw}");
+        }
+    }
+
+    #[test]
+    fn from_raw_aliases() {
+        let cases = [
+            ("x-cinnamon", DesktopEnv::Cinnamon),
+            ("deepin", DesktopEnv::Dde),
+            ("plasmax11", DesktopEnv::Kde),
+            ("razor-qt", DesktopEnv::Razor),
+            ("trinity", DesktopEnv::Tde),
+            ("xubuntu", DesktopEnv::Xfce),
+            ("e", DesktopEnv::Enlightenment),
+        ];
+        for (raw, expected) in cases {
+            assert_eq!(DesktopEnv::from_raw(raw), expected, "raw: {raw}");
+        }
+    }
+
+    #[test]
+    fn from_raw_case_insensitive() {
+        let cases = [
+            ("GNOME", DesktopEnv::Gnome),
+            ("Kde", DesktopEnv::Kde),
+            ("SWAY", DesktopEnv::Sway),
+            ("Xfce", DesktopEnv::Xfce),
+        ];
+        for (raw, expected) in cases {
+            assert_eq!(DesktopEnv::from_raw(raw), expected, "raw: {raw}");
+        }
+    }
+
+    #[test]
+    fn from_raw_colon_separated() {
+        let cases = [
+            ("X-GNOME:KDE", DesktopEnv::Kde),
+            ("budgie:gnome", DesktopEnv::Budgie),
+            ("bad:unknown:xfce", DesktopEnv::Xfce),
+            (":sway:", DesktopEnv::Sway),
+        ];
+        for (raw, expected) in cases {
+            assert_eq!(DesktopEnv::from_raw(raw), expected, "raw: {raw}");
+        }
+    }
+
+    #[test]
+    fn from_raw_whitespace_trimmed() {
+        let cases = [
+            ("  budgie  ", DesktopEnv::Budgie),
+            ("  gnome : kde", DesktopEnv::Gnome),
+        ];
+        for (raw, expected) in cases {
+            assert_eq!(DesktopEnv::from_raw(raw), expected, "raw: {raw}");
+        }
+    }
+
+    #[test]
+    fn from_raw_unknown_falls_back_to_other() {
+        let cases = ["unknown", "random-de", "fluxbox", ""];
+        for raw in cases {
+            assert_eq!(
+                DesktopEnv::from_raw(raw),
+                DesktopEnv::Other(raw.to_string()),
+                "raw: {raw}"
+            );
+        }
+    }
+}
