@@ -10,6 +10,7 @@ const PCI_DB_PATHS: &[&str] = &[
     "/var/lib/pciutils/pci.ids",
 ];
 
+#[must_use]
 pub fn fetch() -> String {
     let Some((vendor_id, device_id)) = find_gpu_device_ids("/sys/bus/pci/devices") else {
         return String::new();
@@ -23,7 +24,7 @@ pub fn fetch() -> String {
     format!("{vendor} {device}")
 }
 
-fn find_gpu_device_ids(sysfs_path: &str) -> Option<(String, String)> {
+pub fn find_gpu_device_ids(sysfs_path: &str) -> Option<(String, String)> {
     fs::read_dir(sysfs_path)
         .into_iter()
         .flatten()
