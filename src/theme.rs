@@ -100,21 +100,11 @@ impl ThemeQuerier for Sway {
     }
 
     fn cursor(&self) -> String {
-        let val = gsettings_get("org.gnome.desktop.interface", "cursor-theme");
-        if val.is_empty() {
-            std::env::var("XCURSOR_THEME").unwrap_or_default()
-        } else {
-            val
-        }
+        gsettings_get("org.gnome.desktop.interface", "cursor-theme")
     }
 
     fn cursor_size(&self) -> String {
-        let val = gsettings_get("org.gnome.desktop.interface", "cursor-size");
-        if val.is_empty() {
-            std::env::var("XCURSOR_SIZE").unwrap_or_default()
-        } else {
-            val
-        }
+        gsettings_get("org.gnome.desktop.interface", "cursor-size")
     }
 }
 
