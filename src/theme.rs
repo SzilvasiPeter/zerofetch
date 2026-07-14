@@ -48,42 +48,6 @@ pub trait ThemeQuerier {
     }
 }
 
-struct Xfce;
-
-impl ThemeQuerier for Xfce {
-    fn wm_theme(&self) -> String {
-        xfce_query("xfwm4", "/general/theme")
-    }
-
-    fn theme(&self) -> String {
-        xfce_query("xsettings", "/Net/ThemeName")
-    }
-
-    fn icons(&self) -> String {
-        xfce_query("xsettings", "/Net/IconThemeName")
-    }
-
-    fn font(&self) -> String {
-        xfce_query("xsettings", "/Gtk/FontName")
-    }
-
-    fn cursor(&self) -> String {
-        xfce_query("xsettings", "/Gtk/CursorThemeName")
-    }
-
-    fn cursor_size(&self) -> String {
-        xfce_query("xsettings", "/Gtk/CursorThemeSize")
-    }
-}
-
-fn xfce_query(channel: &str, property: &str) -> String {
-    Command::new("xfconf-query")
-        .args(["-c", channel, "-p", property])
-        .output()
-        .map(|out| String::from_utf8_lossy(&out.stdout).trim().to_string())
-        .unwrap_or_default()
-}
-
 struct Sway;
 
 impl ThemeQuerier for Sway {
@@ -121,6 +85,42 @@ fn gsettings_get(schema: &str, key: &str) -> String {
         .unwrap_or_default()
 }
 
+struct Xfce;
+
+impl ThemeQuerier for Xfce {
+    fn wm_theme(&self) -> String {
+        xfce_query("xfwm4", "/general/theme")
+    }
+
+    fn theme(&self) -> String {
+        xfce_query("xsettings", "/Net/ThemeName")
+    }
+
+    fn icons(&self) -> String {
+        xfce_query("xsettings", "/Net/IconThemeName")
+    }
+
+    fn font(&self) -> String {
+        xfce_query("xsettings", "/Gtk/FontName")
+    }
+
+    fn cursor(&self) -> String {
+        xfce_query("xsettings", "/Gtk/CursorThemeName")
+    }
+
+    fn cursor_size(&self) -> String {
+        xfce_query("xsettings", "/Gtk/CursorThemeSize")
+    }
+}
+
+fn xfce_query(channel: &str, property: &str) -> String {
+    Command::new("xfconf-query")
+        .args(["-c", channel, "-p", property])
+        .output()
+        .map(|out| String::from_utf8_lossy(&out.stdout).trim().to_string())
+        .unwrap_or_default()
+}
+
 pub fn fetch(de: &DesktopEnv) -> Info {
     if matches!(de, DesktopEnv::Other(_)) {
         return Info::default();
@@ -134,6 +134,7 @@ pub fn fetch(de: &DesktopEnv) -> Info {
             let provider = Sway;
             provider.collect()
         }
+        // TODO: Replace `_` with `DesktopEnv::Other(_)` once the exhaustive match in place
         _ => Info::default(),
     }
 }
