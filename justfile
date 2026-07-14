@@ -12,6 +12,7 @@ test:
 
 cov:
     cargo llvm-cov --all-features --html --output-dir target/coverage/html
+    cargo llvm-cov --all-features --json --output-path target/coverage/coverage.json
     cargo llvm-cov report
 
 open:
