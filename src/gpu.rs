@@ -20,7 +20,7 @@ pub fn fetch() -> String {
     };
 
     let db_content = fs::read_to_string(db_path).unwrap_or_default();
-    let (vendor, device) = parse_pci_ids(&vendor_id, &device_id, &db_content);
+    let (vendor, device) = parse_pci_ids(&db_content, &vendor_id, &device_id);
     format!("{vendor} {device}")
 }
 
