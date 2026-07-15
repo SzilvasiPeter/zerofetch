@@ -1,0 +1,49 @@
+name: CD
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      TARGET: x86_64-unknown-linux-gnu
+      BINARY: zerofetch
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Rust toolchain
+        uses: moonrepo/setup-rust@v1
+        with:
+          channel: stable
+          cache: true
+          targets: ${{ env.TARGET }}
+
+      - name: Publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish
+
+      - name: Build Linux binary package
+        id: package
+        run: |
+          cargo build --release --target "$TARGET"
+          strip "target/$TARGET/release/$BINARY"
+
+          TAR="${BINARY}-${TARGET}.tar.gz"
+          tar -czf "$TAR" -C "target/$TARGET/release" "$BINARY"
+          echo "artifact=$TAR" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: ""
+          files: ${{ steps.package.outputs.artifact }}
