@@ -2,6 +2,7 @@
 mod deskenv;
 mod display;
 mod gpu;
+mod logos;
 mod theme;
 
 use pkgmgr_info::PackageManager;
@@ -69,6 +70,8 @@ fn main() {
         .unwrap_or_default();
     let locale = std::env::var("LANG").unwrap_or_default();
 
+    logos::print(&os);
+    println!();
     println!("{G}OS:{R} {os} {arch}");
     println!("{G}Host:{R} {host}");
     println!("{G}Kernel:{R} {kernel}");
