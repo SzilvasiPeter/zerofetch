@@ -1,6 +1,6 @@
+use minifetch::gpu::find_gpu_device_ids;
 use std::fs;
 use tempfile::tempdir;
-use zerofetch::gpu::find_gpu_device_ids;
 
 #[test]
 fn find_gpu_device_ids_path_not_exist() {

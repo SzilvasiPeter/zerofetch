@@ -1,10 +1,10 @@
 [package]
-name = "zerofetch"
+name = "minifetch"
 version = "0.2.0"
 edition = "2024"
 license = "MIT"
-repository = "https://github.com/SzilvasiPeter/zerofetch"
-description = "zerofetch"
+repository = "https://github.com/SzilvasiPeter/minifetch"
+description = "minifetch"
 readme = "README.md"
 keywords = ["system", "status", "linux", "fetch"]
 categories = ["command-line-utilities"]

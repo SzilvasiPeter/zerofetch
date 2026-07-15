@@ -1,4 +1,4 @@
-# Contributing to zerofetch
+# Contributing to minifetch
 
 Thanks for wanting to help out.
 
